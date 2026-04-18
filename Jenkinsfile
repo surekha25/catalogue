@@ -6,8 +6,11 @@ pipeline {
         }
     }
     environment{
-        COURSE = "Jenkins"
+        course = "Jenkins"
         appVersion = ""
+        account_id = "966656799776"
+        project = "roboshop"
+        component = "catalogue"
     }
     options{
         timeout(time: 10, unit: 'MINUTES')
@@ -36,30 +39,20 @@ pipeline {
         stage('Build Image') {
             steps {
                 script{
-                    sh """
-                        docker build -t catalogue:${appVersion} .
-                        docker images
-                    """                    
-                }
-            }
-        }
-        stage('Deploy') {
-            // input {
-            //     message "Should we continue?"
-            //     ok "Yes, we should."
-            //     submitter "alice,bob"
-            //     parameters {
-            //         string(name: 'PERSON', defaultValue: 'Mr Jenkins', description: 'Who should I say hello to?')
-            //     }
-            // }
-            when { 
-                expression { "$params.DEPLOY" == "true" }
-            }
-            steps {
-                script{
-                    sh """
-                        echo "Deploying"
-                    """
+                    withAWS(region:'us-east-1',credentials:'aws-creds') {
+                        sh """
+                            aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${account_id}.dkr.ecr.us-east-1.amazonaws.com
+                            
+                            docker build -t ${project}/${component}:${appVersion} .
+
+                            docker tag ${project}/${component}:${appVersion} ${account_id}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
+                            
+                            docker images
+                            
+                            docker push ${appVersion}.dkr.ecr.us-east-1.amazonaws.com/${project}/${component}:${appVersion}
+                        """
+                    }
+                                        
                 }
             }
         }
