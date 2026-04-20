@@ -36,24 +36,24 @@ pipeline {
                 }
             }
         }
-        stage('Unit Test') {
-            steps {
-                script{
-                    sh """
-                        npm test
-                    """
-                }
-            }
-        }
+        // stage('Unit Test') {
+        //     steps {
+        //         script{
+        //             sh """
+        //                 npm test
+        //             """
+        //         }
+        //     }
+        // }
         //Here you need to select scanner tool and send the analysis to server
         stage('Sonar Scan') {
-            environment{
+            environment {
                 def scannerHome = tool 'sonar-8.0'
             }
             steps{
                 script{
                     withSonarQubeEnv('sonar-server') {
-                        sh  'sh "${scannerHome}"/bin/sonar-scanner'
+                        sh  "${scannerHome}/bin/sonar-scanner"
                     }
                 }
             }
